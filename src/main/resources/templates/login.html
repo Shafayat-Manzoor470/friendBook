@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: red;
+        }
+        .login-container {
+            width: 400px;
+            padding: 20px;
+            background: #fff;
+            margin: 80px auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 12px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <h2>Login to Your Account</h2>
+    <form id="loginForm">
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" required>
+        </div>
+        <button type="submit">Login Button</button>
+        <div id="message"></div>
+    </form>
+</div>	
+
+<script>
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        try {
+            const response = await fetch("/api/user/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                // Store JWT token in localStorage
+                localStorage.setItem("jwtToken", result.token);  
+
+                // Fetch user profile using JWT token
+                const profileResponse = await fetch("/api/user/profile", {
+                    headers: {
+                        "Authorization": "Bearer " + result.token
+                    }
+                });
+
+                if (!profileResponse.ok) {
+                    document.getElementById("message").innerHTML = 
+                        `<span style="color: red;">Could not fetch profile (403).</span>`;
+                    return;
+                }
+
+                const profile = await profileResponse.json();
+
+                document.getElementById("message").innerHTML = 
+                    `<span style="color: green;">Welcome, ${profile.username}!</span>`;
+
+                // Redirect to profile page
+                window.location.href = "profile.html";
+
+            } else {
+                document.getElementById("message").innerHTML = 
+                    `<span style="color: red;">${result.message || "Invalid credentials."}</span>`;
+            }
+        } catch (error) {
+            console.error(error);
+            document.getElementById("message").innerHTML = 
+                `<span style="color: red;">Something went wrong. Try again.</span>`;
+        }	
+    });
+</script>
+</body>
+</html>

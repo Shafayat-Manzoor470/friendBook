@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Profile</title>
+    <style>
+        /* (same styles as before...) */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .profile-container {
+            width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .logout-btn {
+            float: right;
+            background-color: #e74c3c;
+            margin-bottom: 10px;
+        }
+
+        /* rest same... */
+    </style>
+</head>
+<body>
+
+<div class="profile-container">
+    <button id="logoutBtn" class="logout-btn">Logout</button>
+
+    <div class="profile-header">
+        <div>
+            <h3 id="username">Username</h3>
+        </div>
+        <div>
+            <img id="profilePhoto" src="" alt="Profile Photo">
+            <input type="file" id="uploadPhoto" accept="image/*">
+        </div>
+    </div>
+
+    <h3>Update Personal Info</h3>
+    <div class="form-group">
+        <label for="favSongs">Favorite Songs</label>
+        <textarea id="favSongs" rows="3"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="favBooks">Favorite Books</label>
+        <textarea id="favBooks" rows="3"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="favPlaces">Favorite Places</label>
+        <textarea id="favPlaces" rows="3"></textarea>
+    </div>
+
+    <button id="updateInfo">Update Info</button>
+
+    <div class="posts">
+        <h3>Your Posts</h3>
+        <div id="postList"></div>
+    </div>
+
+    <div class="followers-following">
+        <h3>Followers and Following</h3>
+        <div id="followersList"></div>
+        <div id="followingList"></div>
+    </div>
+</div>
+
+<script>
+    const jwtToken = localStorage.getItem('jwtToken');
+
+    if (!jwtToken) {
+        alert("Session expired. Please log in again.");
+        window.location.href = "/login.html";
+    }
+
+    fetch('/api/user/profile', {
+        headers: {
+            'Authorization': `Bearer ${jwtToken}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                localStorage.removeItem("jwtToken");
+                alert("Session expired. Please login again.");
+                window.location.href = "/login.html";
+            }
+            throw new Error("Failed to fetch profile");
+        }
+        return response.json();
+    })
+    .then(data => {
+        document.getElementById('username').textContent = data.username;
+        document.getElementById('profilePhoto').src = data.profilePhotoUrl;
+
+        document.getElementById('favSongs').value = data.favSongs || '';
+        document.getElementById('favBooks').value = data.favBooks || '';
+        document.getElementById('favPlaces').value = data.favPlaces || '';
+
+        data.posts.forEach(post => {
+            const postElement = document.createElement('div');
+            postElement.classList.add('post');
+            postElement.innerHTML = `<img src="${post.imageUrl}" alt="Post Image"><span>${post.caption}</span>`;
+            document.getElementById('postList').appendChild(postElement);
+        });
+
+        data.followers.forEach(follower => {
+            const followerElement = document.createElement('div');
+            followerElement.textContent = follower.username;
+            document.getElementById('followersList').appendChild(followerElement);
+        });
+
+        data.following.forEach(following => {
+            const followingElement = document.createElement('div');
+            followingElement.textContent = following.username;
+            document.getElementById('followingList').appendChild(followingElement);
+        });
+    })
+    .catch(err => console.error("Error fetching user profile:", err));
+
+    document.getElementById('uploadPhoto').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file || !file.type.startsWith("image/")) {
+            alert("Please select a valid image file.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('profilePhoto', file);
+
+        fetch('/api/user/upload-photo', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${jwtToken}`
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Upload failed");
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById('profilePhoto').src = data.newProfilePhotoUrl;
+        })
+        .catch(err => {
+            console.error("Error uploading profile photo:", err);
+            alert("Upload failed.");
+        });
+    });
+
+    document.getElementById('updateInfo').addEventListener('click', function() {
+        const updatedInfo = {
+            favSongs: document.getElementById('favSongs').value,
+            favBooks: document.getElementById('favBooks').value,
+            favPlaces: document.getElementById('favPlaces').value
+        };
+
+        fetch('/api/user/update-info', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${jwtToken}`
+            },
+            body: JSON.stringify(updatedInfo)
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Failed to update");
+            return response.json();
+        })
+        .then(data => {
+            alert("Information updated successfully!");
+        })
+        .catch(err => {
+            console.error("Error updating info:", err);
+            alert("Failed to update information.");
+        });
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        localStorage.removeItem("jwtToken");
+        window.location.href = "/login.html";
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Signup Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .signup-container {
+            width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        #message span {
+            font-weight: bold;
+        }
+
+        #captchaValue {
+            font-weight: bold;
+            font-size: 16px;
+            margin-top: 5px;
+            display: block;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+<div class="signup-container">
+    <h2>Create an Account</h2>
+    <form id="signupForm">
+        <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <input type="text" id="fullName" name="fullName" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div class="form-group">
+            <label for="captcha">Enter CAPTCHA</label>
+            <input type="text" id="captcha" name="captcha" required>
+            <span id="captchaValue"><!-- CAPTCHA will be shown here --></span>
+        </div>
+        <div class="form-group">
+            <button type="submit">Sign Up</button>
+        </div>
+		<div class="form-group">
+		    <button type="button" onclick="window.location.href='./login.html'" style="background-color: #2196F3;">Login</button>
+		</div>
+        <div id="message"></div>
+    </form>
+</div>
+
+<script>
+    // Load captcha from backend
+    fetch('/api/user/generate-captcha')
+        .then(res => res.text())
+        .then(captcha => {
+            document.getElementById('captchaValue').textContent = "Captcha: " + captcha;
+            sessionStorage.setItem("captchaToken", captcha); // simulate token
+        });
+
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const data = {
+            fullName: document.getElementById('fullName').value,
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+            captchaToken: document.getElementById('captcha').value
+        };
+
+        fetch('/api/user/signup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Signup failed");
+            return response.text();
+        })
+        .then(msg => {
+            document.getElementById('message').innerHTML = `<span style="color: green">${msg}</span>`;
+        })
+        .catch(err => {
+            document.getElementById('message').innerHTML = `<span style="color: red">${err.message}</span>`;
+        });
+    });
+</script>
+</body>
+</html>
