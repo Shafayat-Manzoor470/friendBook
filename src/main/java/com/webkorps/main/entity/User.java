@@ -46,7 +46,7 @@ public class User {
 	
 	@ManyToMany
 	@JoinTable(
-			name="followig",
+			name="following",
 			joinColumns  = @JoinColumn(name="user_id"),
 			inverseJoinColumns = @JoinColumn(name="following_id")
 			)

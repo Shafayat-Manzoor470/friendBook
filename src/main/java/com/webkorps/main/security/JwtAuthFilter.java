@@ -6,7 +6,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,7 +22,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserService userService;
 
-    @Autowired
     public JwtAuthFilter(JwtService jwtService, @Lazy UserService userService) {
         this.jwtService = jwtService;
         this.userService = userService;
@@ -37,7 +35,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // ✅ Skip JWT check for login/signup or any public endpoints
+        //  Skip JWT check for login/signup or any public endpoints
         if (path.equals("/api/user/login") || path.equals("/api/user/signup")) {
             filterChain.doFilter(request, response);
             return;
@@ -59,7 +57,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             UserDetails userDetails = userService.loadUserByUsername(userEmail);
             if (jwtService.validateToken(jwt, userDetails)) {
             	UsernamePasswordAuthenticationToken authToken =
-            		    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            		    new UsernamePasswordAuthenticationToken(userDetails, null, Collections.emptyList());
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);

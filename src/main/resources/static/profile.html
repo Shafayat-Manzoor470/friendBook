@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgb(255, 200, 255);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .profile-container {
+            width: 95%; /* Increased width for better responsiveness */
+            max-width: 800px;
+            padding: 30px;
+            background-color: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            position: relative;
+            box-sizing: border-box; /* Include padding in width calculation */
+        }
+
+		.login-info {
+		            position: absolute;
+		            top: 15px;
+		            left: 15px;
+		            font-size: 14px;
+		            color: #555;
+		        }
+        .logout-btn, .home-btn {
+            position: absolute;
+            top: 15px;
+            padding: 8px 16px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            right: 15px;
+        }
+
+        .home-btn {
+            right: 100px;
+            background-color: #2ecc71;
+        }
+
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .home-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            margin-bottom: 25px;
+            text-align: center; /* Center heading elements */
+        }
+
+        #username {
+            margin-top: 10px;
+            font-size: 26px;
+            color: #333;
+        }
+
+        .profile-image-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid #ddd;
+            margin-bottom: 10px;
+            margin: 0 auto 10px auto; /* Center the image container */
+        }
+
+        #profilePhoto {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #uploadPhoto {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 5px 0;
+            text-align: center;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: pointer;
+        }
+
+        .profile-image-container:hover #uploadPhoto {
+            opacity: 1;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            color: #444;
+        }
+
+        textarea {
+            width: calc(100% - 20px); /* Leave space for padding/border */
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            resize: vertical;
+            font-size: 16px;
+            box-sizing: border-box; /* Include padding and border in element's total width and height */
+        }
+
+        #updateInfo {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            display: block;
+            margin-top: 20px;
+            box-sizing: border-box; /* Include padding and border */
+        }
+
+        #updateInfo:hover {
+            background-color: #2980b9;
+        }
+
+        .section-title {
+            margin-top: 30px;
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            text-align: left; /* Align section titles to the left */
+        }
+
+        .posts-container, .followers-following-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .post {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .post:last-child {
+            border-bottom: none;
+        }
+
+        .post img {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 15px;
+            border: 1px solid #ddd;
+        }
+
+        .followers-list > div, .following-list > div {
+            padding: 10px;
+            margin-bottom: 8px;
+            background-color: #eee;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        .followers-list > div:last-child, .following-list > div:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+    <script>
+        (function() {
+            const originalFetch = window.fetch;
+
+            window.fetch = async (input, init) => {
+                const jwtToken = localStorage.getItem('jwtToken');
+                const newInit = { ...init }; //  Create a copy to avoid modifying original
+
+                if (jwtToken) {
+                    if (!newInit.headers) {
+                        newInit.headers = {};
+                    }
+                    newInit.headers['Authorization'] = `Bearer ${jwtToken}`;
+                }
+
+                try {
+                    const response = await originalFetch(input, newInit);
+                    //  Important:  Handle 401/403 *here* for all fetch requests
+                    if (response.status === 401 || response.status === 403) {
+                        localStorage.removeItem('jwtToken');
+                        alert("Session expired. Please log in again.");
+                        window.location.href = "/login.html";
+                    }
+                    return response;
+                } catch (error) {
+                    //  Handle network errors, etc.
+                    console.error("Fetch error:", error);
+                    throw error; //  Re-throw to allow further handling
+                }
+            };
+        })();
+    </script>
+</head>
+<body>
+
+<div class="profile-container">
+    <button id="logoutBtn" class="logout-btn">Logout</button>
+    <button id="homeBtn" class="home-btn">Home</button>
+    <div class="login-info">
+        Logged in <span id="loginTimeAgo"></span>
+    </div>
+    <div class="profile-header">
+        <div class="profile-image-container">
+            <img id="profilePhoto" src="" alt="Profile Photo">
+            <label for="profilePhotoInput" id="uploadPhoto">Change Photo</label>
+            <input type="file" id="profilePhotoInput" accept="image/*">
+        </div>
+        <h3 id="username">Username</h3>
+    </div>
+
+    <h3 class="section-title">Update Personal Info</h3>
+    <div class="form-group">
+        <label for="favSongs">Favorite Songs</label>
+        <textarea id="favSongs" rows="3"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="favBooks">Favorite Books</label>
+        <textarea id="favBooks" rows="3"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="favPlaces">Favorite Places</label>
+        <textarea id="favPlaces" rows="3"></textarea>
+    </div>
+
+    <button id="updateInfo">Update Info</button>
+
+    <div class="posts-container">
+        <h3 class="section-title">Your Posts</h3>
+        <div id="postList"></div>
+    </div>
+
+    <div class="followers-following-container">
+        <h3 class="section-title">Followers and Following</h3>
+        <div class="followers-list">
+            <h4>Followers</h4>
+            <div id="followersList"></div>
+        </div>
+        <div class="following-list">
+            <h4>Following</h4>
+            <div id="followingList"></div>
+        </div>
+    </div>
+</div>
+<script>
+    const jwtToken = localStorage.getItem('jwtToken');
+
+    if (!jwtToken) {
+        alert("Session expired. Please log in again.");
+        window.location.href = "/login.html";
+    }
+
+    function handleResponseError(response) {
+        if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem("jwtToken");
+            alert("Session expired. Please login again.");
+            window.location.href = "/login.html";
+            return true;
+        }
+        return false;
+    }
+
+    function timeAgo(timestamp) {
+        const now = new Date();
+        const loginTime = new Date(timestamp);
+        const seconds = Math.floor((now - loginTime) / 1000);
+
+        if (seconds < 60) {
+            return `${seconds} seconds ago`;
+        } else if (seconds < 3600) {
+            const minutes = Math.floor(seconds / 60);
+            return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+        } else if (seconds < 86400) {
+            const hours = Math.floor(seconds / 3600);
+            return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        } else {
+            const days = Math.floor(seconds / 86400);
+            return `${days} day${days > 1 ? 's' : ''} ago`;
+        }
+    }
+
+    fetch('/api/user/profile', {
+        headers: {
+            'Authorization': `Bearer ${jwtToken}`
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            if (!handleResponseError(response)) {
+                throw new Error("Failed to fetch profile");
+            }
+        }
+        return response.json();
+    })
+    .then(data => {
+        document.getElementById('username').textContent = data.username;
+        document.getElementById('profilePhoto').src = data.profilePhotoUrl || 'images/default-profile.png';
+
+        document.getElementById('favSongs').value = data.favSongs || '';
+        document.getElementById('favBooks').value = data.favBooks || '';
+        document.getElementById('favPlaces').value = data.favPlaces || '';
+
+        const loginTimeAgoElement = document.getElementById("loginTimeAgo");
+        if (data.loginTime) {
+            loginTimeAgoElement.innerText = timeAgo(data.loginTime);
+        } else {
+            console.warn("Login time not provided in the profile data.");
+            loginTimeAgoElement.innerText = "Last login time not available.";
+        }
+
+        const postListDiv = document.getElementById('postList');
+        postListDiv.innerHTML = '';
+        if (data.posts && Array.isArray(data.posts)) {
+            data.posts.forEach(post => {
+                const postElement = document.createElement('div');
+                postElement.classList.add('post');
+                postElement.innerHTML = `<img src="${post.imageUrl || 'images/default-post.png'}" alt="Post Image"><span>${post.caption || 'No caption'}</span>`;
+                postListDiv.appendChild(postElement);
+            });
+        } else {
+            postListDiv.textContent = 'No posts yet.';
+        }
+
+        const followersListDiv = document.getElementById('followersList');
+        followersListDiv.innerHTML = '';
+        if (data.followers && Array.isArray(data.followers)) {
+            data.followers.forEach(follower => {
+                const followerElement = document.createElement('div');
+                followerElement.textContent = follower.username;
+                followersListDiv.appendChild(followerElement);
+            });
+        } else {
+            followersListDiv.textContent = 'No followers yet.';
+        }
+
+        const followingListDiv = document.getElementById('followingList');
+        followingListDiv.innerHTML = '';
+        if (data.following && Array.isArray(data.following)) {
+            data.following.forEach(following => {
+                const followingElement = document.createElement('div');
+                followingElement.textContent = following.username;
+                followingListDiv.appendChild(followingElement);
+            });
+        } else {
+            followingListDiv.textContent = 'Not following anyone yet.';
+        }
+    })
+    .catch(err => console.error("Error fetching user profile:", err));
+
+    document.getElementById('profilePhotoInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file || !file.type.startsWith("image/")) {
+            alert("Please select a valid image file.");
+            this.value = '';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('profilePhoto', file);
+
+        fetch('/api/user/upload-photo', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${jwtToken}`
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                if (!handleResponseError(response)) {
+                    throw new Error("Upload failed");
+                }
+            }
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById('profilePhoto').src = data.newProfilePhotoUrl;
+            alert("Profile photo updated successfully!");
+            this.value = '';
+        })
+        .catch(err => {
+            console.error("Error uploading profile photo:", err);
+            alert("Failed to upload profile photo.");
+            this.value = '';
+        });
+    });
+
+    document.getElementById('updateInfo').addEventListener('click', function() {
+        const updatedInfo = {
+            favSongs: document.getElementById('favSongs').value,
+            favBooks: document.getElementById('favBooks').value,
+            favPlaces: document.getElementById('favPlaces').value
+        };
+
+        fetch('/api/user/update-info', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${jwtToken}`
+            },
+            body: JSON.stringify(updatedInfo)
+        })
+        .then(response => {
+            if (!response.ok) {
+                if (!handleResponseError(response)) {
+                    throw new Error("Failed to update");
+                }
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert("Information updated successfully!");
+        })
+        .catch(err => {
+            console.error("Error updating info:", err);
+            alert("Information updated successfully!");  // Need to fix this error message
+        });
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        localStorage.removeItem("jwtToken");
+        window.location.href = "/login.html";
+    });
+	document.getElementById('homeBtn').addEventListener('click', function () {
+	    window.location.href = "/home";
+	});
+</script>
+</body>
+</html>

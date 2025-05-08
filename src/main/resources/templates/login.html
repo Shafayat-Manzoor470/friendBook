@@ -94,7 +94,8 @@
                 localStorage.setItem("jwtToken", result.token);  
 
                 // Fetch user profile using JWT token
-                const profileResponse = await fetch("/api/user/profile", {
+                const profileResponse = await fetch("api/user/profile", {
+					method: "GET",
                     headers: {
                         "Authorization": "Bearer " + result.token
                     }
@@ -112,7 +113,7 @@
                     `<span style="color: green;">Welcome, ${profile.username}!</span>`;
 
                 // Redirect to profile page
-                window.location.href = "profile.html";
+                window.location.href = "/profile.html";
 
             } else {
                 document.getElementById("message").innerHTML = 

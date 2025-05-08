@@ -16,4 +16,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Corrected method names for existence checks
     public boolean existsByEmail(String email);
     public boolean existsByUsername(String username);
+	public Optional<User> findByUsernameContainingIgnoreCase(String query);
 }

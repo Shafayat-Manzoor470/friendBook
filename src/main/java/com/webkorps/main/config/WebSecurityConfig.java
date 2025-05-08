@@ -1,6 +1,7 @@
 package com.webkorps.main.config;
 
 import com.webkorps.main.security.JwtAuthFilter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,7 +9,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,7 +26,6 @@ public class WebSecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private UserDetailsService userDetailsService;
 
-    @Autowired
     public WebSecurityConfig(JwtAuthFilter jwtAuthFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
     }
@@ -43,18 +42,25 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                 		"/",
-                        "/signup",       // Add this to permit access to the signup page
+                		"/favicon.ico",
+                        "/signup",       //  to  access  the signup page
                         "/signup/**",
-                        "/login",        // Add this to permit access to the login page
+                        "/login",        //  to access  the login page
                         "/login/**",
                         "/login.html",
+                        "/profile.html",
+                        "/home.html",
+                        "/home",
                         "/api/user/signup",
                         "/api/user/login",
                         "/api/user/generate-captcha",
+                        "/uploads/**",
+                        "/images/**",
                         "/css/**",
                         "/js/**"
                 ).permitAll()
-                .requestMatchers("/api/user/profile").authenticated()
+                .requestMatchers("/api/user/**").authenticated()
+                
                 .anyRequest().authenticated()
                
             ) 
@@ -84,4 +90,7 @@ public class WebSecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+    
+  
+    
 }

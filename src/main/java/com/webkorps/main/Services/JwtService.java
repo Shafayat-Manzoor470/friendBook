@@ -3,8 +3,11 @@ package com.webkorps.main.Services;
 import java.security.Key;
 import java.util.Date;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.*;
@@ -22,6 +25,10 @@ public class JwtService {
     private long jwtExpiration;
 
     private Key key;
+    
+    @Autowired
+    @Lazy
+    private   UserDetailsService userDetailsService;
 
     @PostConstruct
     public void init() {
@@ -76,5 +83,12 @@ public class JwtService {
         } catch (JwtException | IllegalArgumentException e) {
             return true;
         }
+    }
+    
+    public boolean validateToken1(String token) {
+        String username = extractUserName(token);
+      
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        return validateToken(token, userDetails);
     }
 }

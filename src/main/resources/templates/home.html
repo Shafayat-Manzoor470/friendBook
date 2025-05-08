@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Friend-Book | Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            margin-top: 30px;
+            max-width: 100%;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        .card {
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0e0e0;
+            background-color: white;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .post-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .btn-like, .btn-comment {
+            margin-right: 10px;
+            color: #6c757d;
+            border: none;
+            background-color: transparent;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-like:hover {
+            background-color: #e0f7fa;
+            color: #007bff;
+        }
+
+        .btn-comment:hover {
+            background-color: #e8f5e9;
+            color: #28a745;
+        }
+
+        .btn-like.active {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .btn-comment.active {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .notification-btn {
+            background-color: #ff4757;
+            color: white;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .notification-btn:hover {
+            background-color: #c62828;
+        }
+
+        .post-upload-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e0e0e0;
+        }
+
+        .post-upload-box h5 {
+            margin-bottom: 20px;
+            color: #343a40;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        #notifications {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #f8f8f8;
+        }
+
+        #notifications .card {
+            margin-bottom: 10px;
+            border: 1px solid #dcdcdc;
+            box-shadow: none;
+        }
+
+        #notifications .card p {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        #notifications .btn {
+            font-size: 13px;
+            padding: 6px 12px;
+        }
+
+        #searchResult {
+            margin-bottom: 30px;
+        }
+
+        #searchResult .card {
+            border: 1px solid #dcdcdc;
+            box-shadow: none;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        #searchResult .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        #searchResult .card span {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .send-request-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .send-request-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .send-request-btn.disabled {
+            background-color: #b0bec5;
+            cursor: not-allowed;
+        }
+
+        .post-time {
+            font-size: 12px;
+            color: #9e9e9e;
+            margin-bottom: 5px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search by username...">
+        </div>
+        <div class="col-md-4 text-end">
+            <button class="btn notification-btn" onclick="loadNotifications()">Notifications</button>
+        </div>
+    </div>
+
+    <div id="searchResult" class="mb-4"></div>
+
+    <div id="notifications" class="mb-4"></div>
+
+    <div class="post-upload-box">
+        <h5>Create a Post</h5>
+        <input type="file" id="postImage" class="form-control mb-2" accept="image/*">
+        <button class="btn btn-success" onclick="uploadPost()">Post</button>
+    </div>
+
+    <div id="postFeed"></div>
+</div>
+
+<script>
+	(function() {
+	    const originalFetch = window.fetch;
+
+	    window.fetch = async (input, init) => {
+	        const jwtToken = localStorage.getItem('jwtToken');
+	        const newInit = { ...init };
+
+	        if (jwtToken) {
+	            if (!newInit.headers) {
+	                newInit.headers = {};
+	            }
+	            newInit.headers['Authorization'] = `Bearer ${jwtToken}`;
+	        }
+
+	        try {
+	            const response = await originalFetch(input, newInit);
+	            if (response.status === 401 || response.status === 403) {
+	                localStorage.removeItem('jwtToken');
+	                alert("Session expired. Please log in again.");
+	                window.location.href = "/login.html";
+	            }
+	            return response;
+	        } catch (error) {
+	            console.error("Fetch error:", error);
+	            throw error;
+	        }
+	    };
+	})();
+
+	function searchUser() {
+	    const query = document.getElementById('searchInput').value;
+	    if (!query.trim()) return;
+
+	    fetch(`/api/user/search/${query}`) // Removed the headers property
+	    .then(response => {
+	        if (!response.ok) {
+	            handleResponseError(response);
+	            throw new Error("Search failed");
+	        }
+	        return response.json();
+	    })
+	    .then(users => {
+	        let html = '';
+	        users.forEach(user => {
+	            html += `
+	                <div class="card p-3">
+	                    <div class="d-flex justify-content-between align-items-center">
+	                        <span>${user.username}</span>
+	                        <button class="btn btn-primary btn-sm send-request-btn" onclick="sendRequest(${user.id}, this)">Send Friend Request</button>
+	                        </div>
+	                </div>`;
+	        });
+	        document.getElementById('searchResult').innerHTML = html;
+	    })
+	    .catch(error => {
+	        console.error("Error searching users:", error);
+	        alert("Failed to search users.");
+	    });
+	}
+    document.getElementById('searchInput').addEventListener('input', searchUser);
+
+    function sendRequest(userId, buttonElement) {
+        fetch(`/api/user/send-request/${userId}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${jwtToken}` }
+        })
+        .then(response => {
+            if (!response.ok) {
+                handleResponseError(response);
+                throw new Error("Failed to send friend request.");
+            }
+            buttonElement.textContent = 'Request Sent';
+            buttonElement.disabled = true;
+            buttonElement.classList.remove('btn-primary');
+            buttonElement.classList.add('disabled');
+        })
+        .catch(error => {
+            console.error("Error sending friend request:", error);
+            alert("Failed to send friend request.");
+        });
+    }
+
+    function loadNotifications() {
+        fetch('/api/user/notifications', {
+            headers: { 'Authorization': `Bearer ${jwtToken}` }
+        })
+        .then(response => {
+            if (!response.ok) {
+                handleResponseError(response);
+                throw new Error("Failed to load notifications.");
+            }
+            return response.json();
+        })
+        .then(data => {
+            let html = '';
+            data.forEach(n => {
+                html += `
+                    <div class="card p-2">
+                        <p>${n.username} sent you a friend request</p>
+                        <button class="btn btn-success btn-sm me-2" onclick="respondRequest(${n.id}, true)">Accept</button>
+                        <button class="btn btn-danger btn-sm" onclick="respondRequest(${n.id}, false)">Decline</button>
+                    </div>`;
+            });
+            document.getElementById('notifications').innerHTML = html;
+        })
+        .catch(error => {
+            console.error("Error loading notifications:", error);
+            alert("Failed to load notifications.");
+        });
+    }
+
+    function respondRequest(notificationId, accept) {
+        fetch(`/api/user/respond-request/${notificationId}?accept=${accept}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${jwtToken}` }
+        })
+        .then(response => {
+            if (!response.ok) {
+                handleResponseError(response);
+                throw new Error("Failed to respond to request.");
+            }
+            loadNotifications();
+            loadPosts(); //reload the post after accepting the request
+        })
+        .catch(error => {
+            console.error("Error responding to request:", error);
+            alert("Failed to respond to friend request.");
+        });
+    }
+
+    function uploadPost() {
+        const file = document.getElementById('postImage').files[0];
+        if (!file || !file.type.startsWith('image/')) {
+            alert('Select a valid image!');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        fetch('/api/post/upload', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${jwtToken}` },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                handleResponseError(response);
+                throw new Error("Failed to upload post.");
+            }
+            loadPosts();
+            document.getElementById('postImage').value=""; //clear the input
+        })
+        .catch(error => {
+            console.error("Error uploading post:", error);
+            alert("Failed to upload post.");
+        });
+    }
+
+    function loadPosts() {
+        fetch('/api/post/following', {
+            headers: { 'Authorization': `Bearer ${jwtToken}` }
+        })
+        .then(response => {
+            if (!response.ok) {
+                handleResponseError(response);
+                throw new Error("Failed to load posts.");
+            }
+            return response.json();
+        })
+        .then(posts => {
+            let html = '';
+            posts.forEach(post => {
+                const postTime = new Date(post.timestamp).toLocaleString();
+                html += `
+                    <div class="card p-3">
+                        <strong>${post.username}</strong>
+                        <span class="post-time">${postTime}</span>
+                        <img src="${post.imageUrl}" class="post-image mt-2 mb-2" alt="post">
+                        <div>
+                            <button class="btn btn-outline-primary btn-like" onclick="toggleLike(this, ${post.id})">Like</button>
+                            <button class="btn btn-outline-secondary btn-comment" onclick="toggleComment(this, ${post.id})">Comment</button>
+                        </div>
+                    </div>`;
+            });
+            document.getElementById('postFeed').innerHTML = html;
+        })
+        .catch(error => {
+            console.error("Error loading posts:", error);
+            alert("Failed to load posts.");
+        });
+    }
+
+    function toggleLike(buttonElement, postId) {
+        // Simulate like functionality
+        buttonElement.classList.toggle('active');
+        if (buttonElement.classList.contains('active')) {
+             buttonElement.textContent = 'Liked';
+        }else{
+            buttonElement.textContent = 'Like';
+        }
+
+
+    }
+
+    function toggleComment(buttonElement, postId) {
+       // Simulate comment functionality
+       buttonElement.classList.toggle('active');
+       if (buttonElement.classList.contains('active')) {
+            buttonElement.textContent = 'Commented';
+       }else{
+            buttonElement.textContent = 'Comment';
+       }
+    }
+
+    // Initial Load
+    loadPosts();
+</script>
+</body>
+</html>

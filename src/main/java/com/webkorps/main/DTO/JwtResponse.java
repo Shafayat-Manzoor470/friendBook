@@ -8,16 +8,27 @@ public class JwtResponse {
     private String token;
     private String username;
     private String email;
-    
+    private long loginTime;
     public JwtResponse(String token) {
         this.token = token;
     }
     
-	public JwtResponse(String token, String username, String email) {
+	public JwtResponse(String token, String username, String email,long loginTime) {
 		this.token = token;
 		this.username = username;
 		this.email = email;
+		this. loginTime= loginTime;
 	}
+	
+	
+	public long getLoginTime() {
+		return loginTime;
+	}
+
+	public void setLoginTime(long loginTime) {
+		this.loginTime = loginTime;
+	}
+
 	public String getToken() {
 		return token;
 	}
