@@ -69,8 +69,13 @@
         <button type="submit">Login Button</button>
         <div id="message"></div>
     </form>
+	<button 
+	    style="background: green; color: white; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px;"
+	    onclick="window.location.href='/signup'">
+	    Sign Up
+	</button>
 </div>	
-
+	
 <script>
     document.getElementById("loginForm").addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -91,7 +96,8 @@
 
             if (response.ok) {
                 // Store JWT token in localStorage
-                localStorage.setItem("jwtToken", result.token);  
+                localStorage.setItem("jwtToken", result.token); 
+				localStorage.setItem("userId", response.userId); 
 
                 // Fetch user profile using JWT token
                 const profileResponse = await fetch("api/user/profile", {

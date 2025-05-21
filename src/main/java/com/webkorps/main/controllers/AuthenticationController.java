@@ -1,67 +1,523 @@
-//package com.webkorps.main.controllers;
-//
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.security.authentication.AuthenticationManager;
-//import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-//import org.springframework.security.core.Authentication;
-//import org.springframework.security.core.userdetails.UserDetails;
-//import org.springframework.web.bind.annotation.PostMapping;
-//import org.springframework.web.bind.annotation.RequestBody;
-//import org.springframework.web.bind.annotation.RequestMapping;
-//import org.springframework.web.bind.annotation.RestController;
-//
-//import com.webkorps.main.DTO.JwtResponse;
-//import com.webkorps.main.DTO.LoginRequest;
-//import com.webkorps.main.DTO.SignupRequest;
-//import com.webkorps.main.Services.CaptchaValidator;
-//import com.webkorps.main.Services.JwtService;
-//import com.webkorps.main.Services.UserService;
-//import com.webkorps.main.entity.User;
-//
-//import lombok.RequiredArgsConstructor;
-//
-//@RestController
-//@RequestMapping("/api/auth")
-//@RequiredArgsConstructor
-//public class AuthenticationController {
-//
-//	@Autowired
-//    private  AuthenticationManager authManager;
-//    @Autowired
-//    private  UserService userService;
-//    @Autowired
-//    private  JwtService jwtService;
-//
-//    @Autowired
-//    private CaptchaValidator captchaValidator;
-//    
-//    @PostMapping("/signup")
-//    public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
-//        // Validate reCAPTCHA token
-//        if (!captchaValidator.isCaptchaValid(request.getCaptchaToken())) {
-//            return ResponseEntity.badRequest().body("CAPTCHA validation failed.");
-//        }
-//
-//        User user = userService.registerUser(request);
-//        return ResponseEntity.ok("User registered with username: " + user.getUsername());
+//<!DOCTYPE html>
+//<html lang="en">
+//<head>
+//  <meta charset="UTF-8" />
+//  <meta name="viewport" content="width=device-width, initial-scale=1" />
+//  <title>User Profile</title>
+//  <style>
+//    body {
+//      font-family: Arial, sans-serif;
+//      max-width: 900px;
+//      margin: auto;
+//      padding: 20px;
+//      background: #f9f9f9;
 //    }
-//
-//    @PostMapping("/login")
-//    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-//        try {
-//            Authentication auth = authManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-//            );
-//
-//            UserDetails userDetails = (UserDetails) auth.getPrincipal();
-//            String token = jwtService.generateToken(userDetails);
-//            User user = userService.getUserByEmail(request.getEmail());
-//
-//            return ResponseEntity.ok(new JwtResponse(token, user.getUsername(), user.getEmail()));
-//        } catch (Exception e) {
-//            return ResponseEntity.status(401).body("Invalid email or password.");
-//        }
+//    h1 {
+//      text-align: center;
+//      margin-bottom: 1rem;
 //    }
+//    .home-btn {
+//      margin: 10px;
+//      padding: 8px 15px;
+//      background-color: #007bff;
+//      color: white;
+//      border: none;
+//      border-radius: 5px;
+//      cursor: pointer;
+//      font-size: 16px;
+//    }
+//    .home-btn:hover {
+//      background-color: #0056b3;
+//    }
+//    #my-posts, #followers, #following, #update-form, .upload-photo-section {
+//      background: white;
+//      padding: 15px;
+//      border-radius: 8px;
+//      box-shadow: 0 0 5px #ccc;
+//      margin-bottom: 20px;
+//    }
+//    #update-form label {
+//      display: block;
+//      margin: 10px 0 5px;
+//    }
+//    #update-form textarea {
+//      width: 100%;
+//      padding: 8px;
+//      border-radius: 4px;
+//      border: 1px solid #ddd;
+//      resize: vertical;
+//    }
+//    #update-form button {
+//      margin-top: 15px;
+//      padding: 10px 20px;
+//      background: #007bff;
+//      border: none;
+//      color: white;
+//      border-radius: 4px;
+//      cursor: pointer;
+//    }
+//    #update-form button:hover {
+//      background: #0056b3;
+//    }
+//    ul.user-list {
+//      list-style: none;
+//      padding-left: 0;
+//    }
+//    ul.user-list li {
+//      padding: 5px 0;
+//      border-bottom: 1px solid #eee;
+//    }
+//    #profile-photo {
+//      display: block;
+//      margin: 0 auto 20px;
+//      width: 150px;
+//      height: 150px;
+//      border-radius: 50%;
+//      object-fit: cover;
+//      border: 3px solid #007bff;
+//    }
+//    .message {
+//      margin: 10px 0;
+//      color: green;
+//    }
+//    .error {
+//      margin: 10px 0;
+//      color: red;
+//    }
+//    .post {
+//      margin-bottom: 20px;
+//      padding-bottom: 10px;
+//      border-bottom: 1px solid #ddd;
+//    }
+//    .post img {
+//      max-width: 100%;
+//      height: auto;
+//      border-radius: 8px;
+//      margin-top: 8px;
+//      margin-bottom: 8px;
+//    }
+//    .post button {
+//      margin-right: 10px;
+//      cursor: pointer;
+//      padding: 5px 10px;
+//      border-radius: 4px;
+//      border: none;
+//      background: #007bff;
+//      color: white;
+//      transition: background-color 0.3s;
+//    }
+//    .post button:hover {
+//      background-color: #0056b3;
+//    }
+//    .like-btn.active {
+//      background-color: #dc3545;
+//      color: white;
+//    }
+//    .like-count {
+//      font-weight: bold;
+//      margin-left: 5px;
+//      color: #555;
+//    }
+//    .comment-section {
+//      margin-top: 10px;
+//    }
+//    .comment-list p {
+//      margin: 4px 0;
+//    }
+//    .comment-input-row {
+//      display: flex;
+//      margin-top: 5px;
+//    }
+//    .comment-input-row input[type="text"] {
+//      flex-grow: 1;
+//      padding: 5px;
+//      border-radius: 4px 0 0 4px;
+//      border: 1px solid #ddd;
+//      border-right: none;
+//    }
+//    .comment-input-row button {
+//      border-radius: 0 4px 4px 0;
+//      padding: 5px 12px;
+//      background: #007bff;
+//      border: none;
+//      color: white;
+//      cursor: pointer;
+//    }
+//    .comment-input-row button:hover {
+//      background: #0056b3;
+//    }
+//  </style>
+//</head>
+//<body>
 //
-//}
+//  <h1>User Profile</h1>
+//  <button class="home-btn" onclick="goHome()">Home</button>
+//  <button class="home-btn" onclick="logout()">Logout</button>
+//  <div class="login-info">
+//         Logged in <span id="loginTimeAgo"></span>
+//     </div>
+//  <img id="profile-photo" src="https://via.placeholder.com/150" alt="Profile Photo" />
+//
+//  <div class="upload-photo-section">
+//    <input type="file" id="profilePhotoInput" accept="image/*" />
+//    <button id="uploadPhotoBtn">Upload New Photo</button>
+//    <div id="photoMessage"></div>
+//  </div>
+//
+//  <form id="update-form">
+//    <label for="favSongs">Favorite Songs (comma separated)</label>
+//    <textarea id="favSongs" rows="2"></textarea>
+//
+//    <label for="favBooks">Favorite Books (comma separated)</label>
+//    <textarea id="favBooks" rows="2"></textarea>
+//
+//    <label for="favPlaces">Favorite Places (comma separated)</label>
+//    <textarea id="favPlaces" rows="2"></textarea>
+//
+//    <button type="submit">Update Info</button>
+//    <div id="updateMessage"></div>
+//  </form>
+//
+//  <section id="my-posts">
+//    <h2>My Posts</h2>
+//    <div id="postContainer"></div>
+//  </section>
+//
+//  <section id="followers">
+//    <h2>Followers</h2>
+//    <ul class="user-list" id="followersList"></ul>
+//  </section>
+//
+//  <section id="following">
+//    <h2>Following</h2>
+//    <ul class="user-list" id="followingList"></ul>
+//  </section>
+//
+//<script>
+//  const apiBase = '/api/user';
+//  const jwtToken = localStorage.getItem('jwtToken');
+//
+//  if (!jwtToken) {
+//    alert("You must be logged in to view this page.");
+//    window.location.href = '/login.html';
+//  }
+//
+//  function goHome() {
+//    window.location.href = '/home';
+//  }
+//
+//  function authFetch(url, options = {}) {
+//    options.headers = options.headers || {};
+//    options.headers['Authorization'] = 'Bearer ' + jwtToken;
+//    return fetch(url, options);
+//  }
+//  
+//  function timeAgo(timestamp) {
+//         const now = new Date();
+//         const loginTime = new Date(timestamp);
+//         const seconds = Math.floor((now - loginTime) / 1000);
+//
+//         if (seconds < 60) {
+//             return `${seconds} seconds ago`;
+//         } else if (seconds < 3600) {
+//             const minutes = Math.floor(seconds / 60);
+//             return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+//         } else if (seconds < 86400) {
+//             const hours = Math.floor(seconds / 3600);
+//             return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+//         } else {
+//             const days = Math.floor(seconds / 86400);
+//             return `${days} day${days > 1 ? 's' : ''} ago`;
+//         }
+//     }
+//
+//  async function loadProfile() {
+//    try {
+//      const res = await authFetch(apiBase + '/profile');
+//      if (!res.ok) throw new Error('Failed to fetch profile');
+//      const data = await res.json();
+//
+//      document.getElementById('profile-photo').src = data.profilePhotoUrl || 'https://via.placeholder.com/150';
+//      document.getElementById('favSongs').value = data.favSongs || '';
+//      document.getElementById('favBooks').value = data.favBooks || '';
+//      document.getElementById('favPlaces').value = data.favPlaces || '';
+//	  const loginTimeAgoElement = document.getElementById("loginTimeAgo");
+//	  if (data.loginTime && !isNaN(new Date(data.loginTime).getTime())) {
+//		console.log("Date object:", new Date(data.loginTime));
+//	    loginTimeAgoElement.innerText = timeAgo(data.loginTime);
+//	  } else {
+//		console.log(data);
+//		console.log(data.loginTime);
+//	    console.warn("Login time is missing or invalid.");
+//	    loginTimeAgoElement.innerText = "Last login time not available.";
+//	  }
+//
+//      // Followers
+//      const followersList = document.getElementById('followersList');
+//      followersList.innerHTML = '';
+//      if (data.followers && data.followers.length) {
+//        data.followers.forEach(follower => {
+//          const li = document.createElement('li');
+//          li.textContent = follower.username;
+//          followersList.appendChild(li);
+//        });
+//      } else {
+//        followersList.innerHTML = '<li>No followers yet.</li>';
+//      }
+//
+//      // Following
+//      const followingList = document.getElementById('followingList');
+//      followingList.innerHTML = '';
+//      if (data.following && data.following.length) {
+//        data.following.forEach(followed => {
+//          const li = document.createElement('li');
+//          li.textContent = followed.username;
+//          followingList.appendChild(li);
+//        });
+//      } else {
+//        followingList.innerHTML = '<li>Not following anyone yet.</li>';
+//      }
+//    } catch (err) {
+//      console.error(err);
+//      alert('Error loading profile: ' + err.message);
+//    }
+//  }
+//
+//  document.getElementById('update-form').addEventListener('submit', async (e) => {
+//    e.preventDefault();
+//    const favSongs = document.getElementById('favSongs').value.trim();
+//    const favBooks = document.getElementById('favBooks').value.trim();
+//    const favPlaces = document.getElementById('favPlaces').value.trim();
+//
+//    const payload = { favSongs, favBooks, favPlaces };
+//
+//    try {
+//      const res = await authFetch(apiBase + '/update-info', {
+//        method: 'POST',
+//        headers: { 'Content-Type': 'application/json' },
+//        body: JSON.stringify(payload)
+//      });
+//
+//      const messageEl = document.getElementById('updateMessage');
+//
+//      if (res.ok) {
+//        messageEl.textContent = 'Profile updated successfully!';
+//        messageEl.className = 'message';
+//        loadProfile();
+//      } else {
+//		      
+//		        const errorData = await res.json();
+//		        const messageEl = document.getElementById('updateMessage');
+//		        messageEl.textContent = errorData.message || 'Failed to update profile.';
+//		        messageEl.className = 'error';
+//		      }
+//		    } catch (err) {
+//		      const messageEl = document.getElementById('updateMessage');
+//		      messageEl.textContent = 'Error updating profile: ' + err.message;
+//		      messageEl.className = 'error';
+//		    }
+//		  });
+//
+//		  document.getElementById('uploadPhotoBtn').addEventListener('click', async () => {
+//		    const fileInput = document.getElementById('profilePhotoInput');
+//		    const file = fileInput.files[0];
+//		    const photoMessage = document.getElementById('photoMessage');
+//		    photoMessage.textContent = '';
+//		    photoMessage.className = '';
+//
+//		    if (!file) {
+//		      photoMessage.textContent = 'Please select a photo to upload.';
+//		      photoMessage.className = 'error';
+//		      return;
+//		    }
+//
+//		    const formData = new FormData();
+//		    formData.append('profilePhoto', file);
+//
+//		    try {
+//		      const res = await authFetch(apiBase + '/upload-photo', {
+//		        method: 'POST',
+//		        body: formData
+//		      });
+//
+//		      if (res.ok) {
+//		        const data = await res.json();
+//		        document.getElementById('profile-photo').src = data.profilePhotoUrl;
+//		        photoMessage.textContent = 'Profile photo updated successfully!';
+//		        photoMessage.className = 'message';
+//		        fileInput.value = '';
+//		      } else {
+//		        const errorData = await res.json();
+//		        photoMessage.textContent = errorData.message || 'Failed to upload photo.';
+//		        photoMessage.className = 'error';
+//		      }
+//		    } catch (err) {
+//		      photoMessage.textContent = 'Error uploading photo: ' + err.message;
+//		      photoMessage.className = 'error';
+//		    }
+//		  });
+//
+//		  async function loadPosts() {
+//		    try {
+//		      const res = await authFetch(apiBase + '/my-posts');
+//		      if (!res.ok) throw new Error('Failed to load posts');
+//		      const posts = await res.json();
+//
+//		      const container = document.getElementById('postContainer');
+//		      container.innerHTML = '';
+//
+//		      posts.forEach(post => {
+//		        const postDiv = document.createElement('div');
+//		        postDiv.className = 'post';
+//
+//		        // Post content
+//		        const contentP = document.createElement('p');
+//		        contentP.textContent = post.content || '';
+//		        postDiv.appendChild(contentP);
+//
+//		        // Post image (if any)
+//		        if (post.imageUrl) {
+//		          const img = document.createElement('img');
+//		          img.src = post.imageUrl;
+//		          img.alt = 'Post image';
+//		          postDiv.appendChild(img);
+//		        }
+//
+//		        // Like button and count
+//		        const likeBtn = document.createElement('button');
+//		        likeBtn.textContent = 'Like';
+//		        likeBtn.className = 'like-btn';
+//		        if (post.likedByCurrentUser) likeBtn.classList.add('active');
+//
+//		        const likeCountSpan = document.createElement('span');
+//		        likeCountSpan.className = 'like-count';
+//		        likeCountSpan.textContent = post.likeCount || 0;
+//
+//		        likeBtn.addEventListener('click', async () => {
+//		          try {
+//		            const method = likeBtn.classList.contains('active') ? 'DELETE' : 'POST';
+//		            const res = await authFetch(apiBase + `/like/${post.id}`, { method });
+//		            if (res.ok) {
+//		              if (method === 'POST') {
+//		                likeBtn.classList.add('active');
+//		                post.likeCount++;
+//		              } else {
+//		                likeBtn.classList.remove('active');
+//		                post.likeCount--;
+//		              }
+//		              likeCountSpan.textContent = post.likeCount;
+//		            } else {
+//		              alert('Failed to update like status');
+//		            }
+//		          } catch {
+//		            alert('Error updating like status');
+//		          }
+//		        });
+//
+//		        postDiv.appendChild(likeBtn);
+//		        postDiv.appendChild(likeCountSpan);
+//
+//		        // Comment section toggle button
+//		        const commentToggleBtn = document.createElement('button');
+//		        commentToggleBtn.textContent = 'Comments';
+//		        postDiv.appendChild(commentToggleBtn);
+//
+//		        // Comment section (hidden initially)
+//		        const commentSection = document.createElement('div');
+//		        commentSection.className = 'comment-section';
+//		        commentSection.style.display = 'none';
+//
+//		        // Comment list container
+//		        const commentList = document.createElement('div');
+//		        commentList.className = 'comment-list';
+//		        commentSection.appendChild(commentList);
+//
+//		        // Comment input row
+//		        const commentInputRow = document.createElement('div');
+//		        commentInputRow.className = 'comment-input-row';
+//
+//		        const commentInput = document.createElement('input');
+//		        commentInput.type = 'text';
+//		        commentInput.placeholder = 'Add a comment...';
+//
+//		        const commentSubmitBtn = document.createElement('button');
+//		        commentSubmitBtn.textContent = 'Post';
+//
+//		        commentInputRow.appendChild(commentInput);
+//		        commentInputRow.appendChild(commentSubmitBtn);
+//		        commentSection.appendChild(commentInputRow);
+//
+//		        postDiv.appendChild(commentSection);
+//
+//		        commentToggleBtn.addEventListener('click', async () => {
+//		          if (commentSection.style.display === 'none') {
+//		            commentSection.style.display = 'block';
+//		            // Load comments only when opened
+//		            try {
+//		              const res = await authFetch(apiBase + `/post/${post.id}`);
+//		              if (res.ok) {
+//		                const comments = await res.json();
+//		                commentList.innerHTML = '';
+//		                if (comments.length) {
+//		                  comments.forEach(c => {
+//		                    const p = document.createElement('p');
+//		                    p.textContent = `${c.username}: ${c.content}`;
+//		                    commentList.appendChild(p);
+//		                  });
+//		                } else {
+//		                  commentList.innerHTML = '<p>No comments yet.</p>';
+//		                }
+//		              } else {
+//		                commentList.innerHTML = '<p>Error loading comments.</p>';
+//		              }
+//		            } catch {
+//		              commentList.innerHTML = '<p>Error loading comments.</p>';
+//		            }
+//		          } else {
+//		            commentSection.style.display = 'none';
+//		          }
+//		        });
+//
+//		        commentSubmitBtn.addEventListener('click', async () => {
+//		          const commentText = commentInput.value.trim();
+//		          if (!commentText) return;
+//		          try {
+//		            const res = await authFetch(apiBase + `/add/${post.id}`, {
+//		              method: 'POST',
+//		              headers: { 'Content-Type': 'application/json' },
+//		              body: JSON.stringify({ text: commentText })
+//		            });
+//		            if (res.ok) {
+//		              const newComment = await res.json();
+//		              const p = document.createElement('p');
+//		              p.textContent = `${newComment.user.username}: ${newComment.content}`;
+//		              commentList.appendChild(p);
+//		              commentInput.value = '';
+//		            } else {
+//		              alert('Failed to post comment');
+//		            }
+//		          } catch {
+//		            alert('Error posting comment');
+//		          }
+//		        });
+//
+//		        container.appendChild(postDiv);
+//		      });
+//		    } catch (err) {
+//		      alert('Error loading posts: ' + err.message);
+//		    }
+//		  }
+//
+//		  // Initialize page
+//		  loadProfile();
+//		  loadPosts();
+//		  
+//		  function logout() {
+//		    localStorage.removeItem('jwtToken'); // Remove JWT token from localStorage
+//		    window.location.href = '/login'; // Redirect to login page
+//		  }
+//
+//		</script>
+//
+//		</body>
+//		</html>

@@ -1,4 +1,4 @@
-/* General body and page styling */
+/** not in use 
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
@@ -72,7 +72,7 @@ span {
     margin-top: 10px;
 }
 
-/* Responsive design */
+ Responsive design 
 @media (max-width: 500px) {
     .signup-container {
         width: 90%;
@@ -82,3 +82,4 @@ span {
         font-size: 18px;
     }
 }
+**/

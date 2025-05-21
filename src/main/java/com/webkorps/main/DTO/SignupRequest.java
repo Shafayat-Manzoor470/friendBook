@@ -8,7 +8,8 @@ public class SignupRequest {
     private String email;
     private String password;
     private String captchaToken;
-	
+    public SignupRequest() {}
+    
 	public SignupRequest(String fullName, String email, String password) {
 		this.fullName = fullName;
 		this.email = email;

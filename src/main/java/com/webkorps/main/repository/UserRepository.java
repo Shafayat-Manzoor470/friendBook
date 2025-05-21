@@ -1,5 +1,6 @@
 package com.webkorps.main.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,5 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Corrected method names for existence checks
     public boolean existsByEmail(String email);
     public boolean existsByUsername(String username);
-	public Optional<User> findByUsernameContainingIgnoreCase(String query);
+    public List<User> findByUsernameContainingIgnoreCase(String query);
+	
+//	public boolean existsBySenderIdAndReceiverId(long senderId, long receiverId);
 }

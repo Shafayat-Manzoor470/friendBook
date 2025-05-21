@@ -51,12 +51,13 @@ public class WebSecurityConfig {
                         "/profile.html",
                         "/home.html",
                         "/home",
+                        "/error",
                         "/api/user/signup",
                         "/api/user/login",
                         "/api/user/generate-captcha",
                         "/uploads/**",
                         "/images/**",
-                        "/css/**",
+                        "/css/**",	
                         "/js/**"
                 ).permitAll()
                 .requestMatchers("/api/user/**").authenticated()
